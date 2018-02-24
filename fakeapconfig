@@ -1,0 +1,12 @@
+ifconfig at0 192.168.2.1 netmask 255.255.255.0
+route add -net 192.168.2.0 netmask 255.255.255.0 gw 192.168.2.1
+
+iptables --table nat --append POSTROUTING --out-interface $1 -j MASQUERADE
+iptables --append FORWARD --in-interface at0 -j ACCEPT
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+pkill -F /var/run/dhclient-at0.pid
+dhcpd -cf /etc/dhcp/dhcpd.conf -pf /var/run/dhclient-at0.pid at0
+
+echo "Fakeap configured on at0. DHCP pid: `cat /var/run/dhclient-at0.pid`"
